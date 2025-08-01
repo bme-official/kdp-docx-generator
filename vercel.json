@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/generate-docx.js": {
-      "runtime": "nodejs18.x"
-    }
-  }
-}
