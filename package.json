@@ -1,8 +1,7 @@
 {
-  "name": "kdp-docx-generator",
-  "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "docx": "^8.0.0"
+    "@vercel/blob": "0.23.1",
+    "docx": "8.5.0"
   }
 }
