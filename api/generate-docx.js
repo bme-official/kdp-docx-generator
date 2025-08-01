@@ -1,21 +1,11 @@
 // /api/generate-docx.js
-import { Document, Packer, Paragraph, TextRun } from 'docx';
-import { put } from '@vercel/blob';
-
-export const runtime = 'nodejs';
+import { Document, Packer, Paragraph, TextRun } from 'docx'
+import { put } from '@vercel/blob'
 
 export default async function handler(req, res) {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const { title = 'タイトル未設定', author = '著者不明', content = '' } = req.body ?? {};
+  const { title = 'タイトル未設定', author = '著者不明', content = '' } = req.body || {}
 
   const doc = new Document({
     sections: [{
@@ -26,15 +16,16 @@ export default async function handler(req, res) {
         ...String(content).split('\n').map(line => new Paragraph(line)),
       ],
     }],
-  });
+  })
 
-  const buffer = await Packer.toBuffer(doc);
+  const buffer = await Packer.toBuffer(doc)
 
-  const fileName = `${String(title || 'untitled').replace(/[\\/:*?"<>|]/g, '_')}_KDP原稿.docx`;
-  const { url } = await put(fileName, buffer, {
+  // Blob にアップロード（公開URLを取得）
+  const filename = `${title}_KDP原稿.docx`
+  const { url } = await put(`docs/${Date.now()}_${filename}`, buffer, {
     access: 'public',
     contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  });
+  })
 
-  return res.status(200).json({ downloadUrl: url });
+  return res.status(200).json({ downloadUrl: url })
 }
