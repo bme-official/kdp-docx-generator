@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server'
+// このファイルは Edge Function ではなく Node.js Function として動作します
 import { Document, Packer, Paragraph, TextRun } from 'docx'
 
-export const config = {
-  runtime: 'edge', // Vercel Edge Functions でもOK
-}
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
 
-export default async function handler(req) {
-  const { title, author, content } = await req.json()
+  const { title, author, content } = req.body
 
   const doc = new Document({
     sections: [
@@ -25,10 +25,7 @@ export default async function handler(req) {
   })
 
   const buffer = await Packer.toBuffer(doc)
-  const base64 = Buffer.from(buffer).toString('base64')
-
-  return NextResponse.json({
-    filename: `${title}_KDP原稿.docx`,
-    base64,
-  })
+  res.setHeader('Content-Disposition', `attachment; filename="${title}_KDP原稿.docx"`)
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+  res.send(buffer)
 }
